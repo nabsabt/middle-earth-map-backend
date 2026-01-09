@@ -1,8 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import * as dotenv from 'dotenv';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  dotenv.config({ path: join(__dirname, '../../.env') });
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const globalPrefix = 'api';
+  app.setGlobalPrefix(globalPrefix);
+
+  //when prod, and frontend/backend has the same URL, origin can be removed
+  app.enableCors({
+    origin: '*',
+    //credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  });
+
+  Logger.log(
+    `Application is running on: ${process.env.SERVER_URL}:${process.env.PORT ?? 3000}/${globalPrefix}. Status: ${process.env.NODE_ENV}`,
+  );
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
