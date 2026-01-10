@@ -8,9 +8,16 @@ export class MiddleEarthService {
 
   private searchMapCollection = this.mongo.collection('searchMap');
 
-  public async postTest(): Promise<any> {
-    const res = await this.searchMapCollection.find({}).toArray();
-    const response = `Successful, data is ${res[3]['name']['EN']}`;
-    return response;
+  public async postSearchResults(input: string, lang: string): Promise<any> {
+    const fieldLang = `keywords_${lang.toUpperCase()}`;
+
+    console.log('Searching in field:', fieldLang);
+    const res = await this.searchMapCollection
+      .find({
+        [fieldLang]: { $regex: input, $options: 'i' },
+      })
+      .toArray();
+
+    return res;
   }
 }
