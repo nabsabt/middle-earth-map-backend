@@ -10,8 +10,24 @@ export class MiddleEarthService {
   constructor(@InjectConnection() private mongo: Connection) {}
 
   private searchMapCollection = this.mongo.collection('searchMap');
-  private uploadsDataDir = resolve(process.cwd(), '../uploads/data');
-  private uploadsImagesDir = resolve(process.cwd(), '../uploads/images');
+  /*   private uploadsDataDir = resolve(process.cwd(), '../uploads/data');
+  private uploadsImagesDir = resolve(process.cwd(), '../uploads/images'); */
+
+  /*  private uploadsDataDir = resolve(
+    process.env.UPLOADS_DIR ?? resolve(process.cwd(), 'uploads'),
+    'data',
+  );
+
+  private uploadsImagesDir = resolve(
+    process.env.UPLOADS_DIR ?? resolve(process.cwd(), 'uploads'),
+    'images',
+  ); */
+
+  private uploadsRoot =
+    process.env.UPLOADS_DIR ?? resolve(process.cwd(), '..', 'uploads'); // from web/backend -> web/uploads
+
+  private uploadsDataDir = resolve(this.uploadsRoot, 'data');
+  private uploadsImagesDir = resolve(this.uploadsRoot, 'images');
 
   public async postSearchResults(input: string, lang: string): Promise<any> {
     const fieldLang = `keywords_${lang.toUpperCase()}`;
@@ -26,6 +42,9 @@ export class MiddleEarthService {
   }
 
   public async postGISObject(gisID: string): Promise<GISObject> {
+    console.log('uploads: ', this.uploadsDataDir);
+    console.log('images: ', this.uploadsImagesDir);
+
     const gisOBJ: GISObject = {
       gisID: Number(gisID),
       name: { EN: '', HU: '' },

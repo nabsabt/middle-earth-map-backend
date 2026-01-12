@@ -4,9 +4,7 @@ import { MiddleEarthService } from 'src/@Service/middleEarth.service';
 
 @Controller()
 export class MiddleEarthController {
-  constructor(private readonly middleEarthService: MiddleEarthService) {
-    console.log('MiddleEarthController initialized');
-  }
+  constructor(private readonly middleEarthService: MiddleEarthService) {}
 
   @Get('getSearchResults')
   public async getSearchResults(
