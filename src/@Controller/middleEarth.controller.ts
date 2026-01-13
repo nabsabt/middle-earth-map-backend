@@ -26,4 +26,15 @@ export class MiddleEarthController {
     const result = await this.middleEarthService.postGISObject(params.gisID);
     return result;
   }
+
+  @Get('getGeoJSONS')
+  public async getGeoJSONS(): Promise<{
+    areas: any;
+    paths: any;
+    places: any;
+  }> {
+    const result = await this.middleEarthService.postGeoJSONS();
+    console.log('getGeoJSONS');
+    return result;
+  }
 }

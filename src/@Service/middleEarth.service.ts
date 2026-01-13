@@ -29,6 +29,8 @@ export class MiddleEarthService {
   private uploadsDataDir = resolve(this.uploadsRoot, 'data');
   private uploadsImagesDir = resolve(this.uploadsRoot, 'images');
 
+  private gisDir = process.env.GIS_DIR ?? resolve(process.cwd(), '..', 'gis');
+
   public async postSearchResults(input: string, lang: string): Promise<any> {
     const fieldLang = `keywords_${lang.toUpperCase()}`;
 
@@ -42,9 +44,6 @@ export class MiddleEarthService {
   }
 
   public async postGISObject(gisID: string): Promise<GISObject> {
-    console.log('uploads: ', this.uploadsDataDir);
-    console.log('images: ', this.uploadsImagesDir);
-
     const gisOBJ: GISObject = {
       gisID: Number(gisID),
       name: { EN: '', HU: '' },
@@ -112,6 +111,28 @@ export class MiddleEarthService {
       return result;
     } catch {
       throw new NotFoundException('Description files not found');
+    }
+  }
+
+  public async postGeoJSONS(): Promise<{
+    areas: any;
+    paths: any;
+    places: any;
+  }> {
+    try {
+      const areas = JSON.parse(
+        await fs.readFile(join(this.gisDir, 'areas.geojson'), 'utf8'),
+      );
+      const paths = JSON.parse(
+        await fs.readFile(join(this.gisDir, 'paths.geojson'), 'utf8'),
+      );
+      const places = JSON.parse(
+        await fs.readFile(join(this.gisDir, 'places.geojson'), 'utf8'),
+      );
+
+      return { areas: areas, paths: paths, places: places };
+    } catch (error) {
+      throw new NotFoundException('GeoJSON files not found');
     }
   }
 }
