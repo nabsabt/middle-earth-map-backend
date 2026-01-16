@@ -6,6 +6,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
+  /*  if (process.env.NODE_ENV !== 'production') {
+    dotenv.config({ path: join(__dirname, '../../.env') });
+  } */
   dotenv.config({ path: join(__dirname, '../../.env') });
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,7 +23,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
-  const uploadsDir = resolve(process.cwd(), '../uploads'); // sibling of backend
+  //const uploadsDir = resolve(process.cwd(), '../uploads');
+  const uploadsDir =
+    process.env.UPLOADS_DIR ?? resolve(process.cwd(), '../uploads');
   // images will be reachable at: /uploads/images/1003/foo.jpg
   app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
 

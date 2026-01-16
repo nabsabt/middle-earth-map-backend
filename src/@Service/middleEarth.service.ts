@@ -10,18 +10,6 @@ export class MiddleEarthService {
   constructor(@InjectConnection() private mongo: Connection) {}
 
   private searchMapCollection = this.mongo.collection('searchMap');
-  /*   private uploadsDataDir = resolve(process.cwd(), '../uploads/data');
-  private uploadsImagesDir = resolve(process.cwd(), '../uploads/images'); */
-
-  /*  private uploadsDataDir = resolve(
-    process.env.UPLOADS_DIR ?? resolve(process.cwd(), 'uploads'),
-    'data',
-  );
-
-  private uploadsImagesDir = resolve(
-    process.env.UPLOADS_DIR ?? resolve(process.cwd(), 'uploads'),
-    'images',
-  ); */
 
   private uploadsRoot =
     process.env.UPLOADS_DIR ?? resolve(process.cwd(), '..', 'uploads'); // from web/backend -> web/uploads
@@ -90,8 +78,12 @@ export class MiddleEarthService {
       const entries = await fs.readdir(dir, { withFileTypes: true });
       const files = entries.filter((e) => e.isFile()).map((e) => e.name);
 
-      return files.map(
+      /* return files.map(
         (file) => `uploads/images/${gisID}/${encodeURIComponent(file)}`,
+      ); */
+      return files.map(
+        (file) =>
+          `${process.env.SERVER_URL}:${process.env.PORT ?? 3000}/uploads/images/${gisID}/${encodeURIComponent(file)}`,
       );
     } catch {
       // no folder -> empty gallery
