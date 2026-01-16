@@ -66,6 +66,21 @@ export class MiddleEarthService {
 
     const images = await this.listImages(gisID);
     gisOBJ.gallery = images;
+
+    const spatialDimensions: any = await this.getGeoPropsByGisId(gisID);
+    if (spatialDimensions) {
+      if (spatialDimensions.area_sqkm) {
+        gisOBJ.area = {
+          sqKm: spatialDimensions.area_sqkm,
+          sqMi: spatialDimensions.area_sqmile,
+        };
+      } else if (spatialDimensions.length_km) {
+        gisOBJ.length = {
+          Km: spatialDimensions.length_km,
+          Mi: spatialDimensions.length_mi,
+        };
+      }
+    }
     return gisOBJ;
   }
 
@@ -112,6 +127,48 @@ export class MiddleEarthService {
     } catch {
       throw new NotFoundException('Description files not found');
     }
+  }
+
+  private async getGeoPropsByGisId(
+    gisID: number | string,
+  ): Promise<
+    | { length_km: number; length_mi: number }
+    | { area_sqkm: number; area_sqmile: number }
+    | null
+  > {
+    const idStr = String(gisID);
+
+    if (idStr.startsWith('2')) {
+      const paths = JSON.parse(
+        await fs.readFile(join(this.gisDir, 'paths.geojson'), 'utf8'),
+      );
+
+      const feature = paths.features.find(
+        (f: any) => f?.properties?.gisID === parseInt(gisID as string),
+      );
+      if (!feature) return null;
+
+      const { length_km, length_mi } = feature.properties;
+
+      return { length_km, length_mi };
+    }
+
+    if (idStr.startsWith('3')) {
+      const areas = JSON.parse(
+        await fs.readFile(join(this.gisDir, 'areas.geojson'), 'utf8'),
+      );
+
+      const feature = areas.features.find(
+        (f: any) => f?.properties?.gisID === parseInt(gisID as string),
+      );
+      if (!feature) return null;
+
+      const { area_sqkm, area_sqmile } = feature.properties;
+
+      return { area_sqkm, area_sqmile };
+    }
+
+    return null;
   }
 
   public async postGeoJSONS(): Promise<{

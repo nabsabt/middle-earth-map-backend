@@ -21,8 +21,6 @@ export class MiddleEarthController {
   public async getGISObject(
     @Query() params: { gisID: string },
   ): Promise<GISObject> {
-    console.log('Received query: ', params);
-
     const result = await this.middleEarthService.postGISObject(params.gisID);
     return result;
   }
