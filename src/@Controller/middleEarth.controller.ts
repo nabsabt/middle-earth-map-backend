@@ -1,5 +1,11 @@
-import { Controller, Get, Post, Query, Res } from '@nestjs/common';
-import { GISObject, SearchResults } from 'src/@Model/middleEarth.model';
+import { Controller, Get, NotFoundException, Query } from '@nestjs/common';
+import {
+  GISObject,
+  SearchResults,
+  SearchResultError,
+  getGISObjectError,
+  getGeoJSONSError,
+} from 'src/@Model/middleEarth.model';
 import { MiddleEarthService } from 'src/@Service/middleEarth.service';
 
 @Controller()
@@ -14,7 +20,17 @@ export class MiddleEarthController {
       params.input,
       params.lang,
     );
-    return result;
+    if (result) {
+      return result;
+    } else {
+      const errorMessage: SearchResultError = {
+        message: {
+          HU: 'A keresés közben hiba történt!',
+          EN: 'Some error occured during searching!',
+        },
+      };
+      throw new NotFoundException(errorMessage);
+    }
   }
 
   @Get('getGISObject')
@@ -22,7 +38,17 @@ export class MiddleEarthController {
     @Query() params: { gisID: string },
   ): Promise<GISObject> {
     const result = await this.middleEarthService.postGISObject(params.gisID);
-    return result;
+    if (result) {
+      return result;
+    } else {
+      const errorMessage: getGISObjectError = {
+        message: {
+          HU: 'A helyszín lekérés közben hiba történt!',
+          EN: 'Some error occured during object selection!',
+        },
+      };
+      throw new NotFoundException(errorMessage);
+    }
   }
 
   @Get('getGeoJSONS')
@@ -32,7 +58,16 @@ export class MiddleEarthController {
     places: any;
   }> {
     const result = await this.middleEarthService.postGeoJSONS();
-    console.log('getGeoJSONS');
-    return result;
+    if (result.areas) {
+      return result;
+    } else {
+      const errorMessage: getGeoJSONSError = {
+        message: {
+          HU: 'A térképi elemek lekérése közben hiba történt!',
+          EN: 'Some error occured during map element fetching!',
+        },
+      };
+      throw new NotFoundException(errorMessage);
+    }
   }
 }
