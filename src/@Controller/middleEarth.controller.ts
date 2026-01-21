@@ -1,4 +1,12 @@
-import { Controller, Get, NotFoundException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
+import type { Request } from 'express';
 import {
   GISObject,
   SearchResults,
@@ -7,10 +15,15 @@ import {
   getGeoJSONSError,
 } from 'src/@Model/middleEarth.model';
 import { MiddleEarthService } from 'src/@Service/middleEarth.service';
+import { getClientIp } from 'get-client-ip';
+import { ChatService } from 'src/@Service/chat.service';
 
 @Controller()
 export class MiddleEarthController {
-  constructor(private readonly middleEarthService: MiddleEarthService) {}
+  constructor(
+    private readonly middleEarthService: MiddleEarthService,
+    private readonly chatService: ChatService,
+  ) {}
 
   @Get('getSearchResults')
   public async getSearchResults(
@@ -68,6 +81,40 @@ export class MiddleEarthController {
         },
       };
       throw new NotFoundException(errorMessage);
+    }
+  }
+
+  @Get('checkEmailSend')
+  public async checkEmailSend(
+    @Req() req: Request,
+  ): Promise<{ status: string }> {
+    const ip = getClientIp(req);
+    console.log(req.headers['lang-header']);
+    const postMail = await this.chatService.checkEmailSend(ip);
+
+    switch (postMail.status) {
+      case 'ok':
+        return { status: 'success' };
+      case 'not ok':
+        return { status: 'wait 24 hours' };
+      default:
+        throw new NotFoundException('Could not get client ip data');
+    }
+  }
+
+  @Post('postNewMail')
+  public async postNewEmail(@Req() req: Request): Promise<{ status: string }> {
+    const ip = getClientIp(req);
+
+    const postMail = await this.chatService.postNewEmail(ip);
+
+    switch (postMail.status) {
+      case 'ok':
+        return { status: 'success' };
+      case 'not ok':
+        return { status: 'wait 24 hours' };
+      default:
+        throw new NotFoundException('Could not get client ip data');
     }
   }
 }

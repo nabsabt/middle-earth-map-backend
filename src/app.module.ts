@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MiddleEarthService } from './@Service/middleEarth.service';
+import { ChatService } from './@Service/chat.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { MiddleEarthService } from './@Service/middleEarth.service';
     }),
   ],
   controllers: [MiddleEarthController],
-  providers: [MiddleEarthService],
+  providers: [MiddleEarthService, ChatService],
 })
 export class AppModule {
   constructor() {}
