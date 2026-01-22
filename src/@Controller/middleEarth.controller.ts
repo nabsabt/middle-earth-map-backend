@@ -7,13 +7,7 @@ import {
   Req,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import {
-  GISObject,
-  SearchResults,
-  SearchResultError,
-  getGISObjectError,
-  getGeoJSONSError,
-} from 'src/@Model/middleEarth.model';
+import { GISObject, SearchResults } from 'src/@Model/middleEarth.model';
 import { MiddleEarthService } from 'src/@Service/middleEarth.service';
 import { getClientIp } from 'get-client-ip';
 import { ChatService } from 'src/@Service/chat.service';
@@ -27,94 +21,124 @@ export class MiddleEarthController {
 
   @Get('getSearchResults')
   public async getSearchResults(
-    @Query() params: { input: string; lang: string },
-  ): Promise<SearchResults[]> {
+    @Query() params: { input: string },
+    @Req() req: Request,
+  ): Promise<SearchResults[] | { message: string }> {
+    const lang: string = req.headers['lang-header'].toString() ?? 'en';
     const result = await this.middleEarthService.postSearchResults(
       params.input,
-      params.lang,
+      lang,
     );
-    if (result) {
+    if (result && result.length > 0) {
       return result;
-    } else {
-      const errorMessage: SearchResultError = {
-        message: {
-          HU: 'A keresés közben hiba történt!',
-          EN: 'Some error occured during searching!',
-        },
+    } else if (result && result.length === 0) {
+      return {
+        message: lang === 'hu' ? 'Nincs találat!' : 'No result found!',
       };
-      throw new NotFoundException(errorMessage);
+    } else {
+      throw new NotFoundException(
+        lang === 'hu'
+          ? 'A keresés közben hiba történt!'
+          : 'Some error occured during searching!',
+      );
     }
   }
 
   @Get('getGISObject')
   public async getGISObject(
     @Query() params: { gisID: string },
+    @Req() req: Request,
   ): Promise<GISObject> {
+    const lang = req.headers['lang-header'] ?? 'en';
+
     const result = await this.middleEarthService.postGISObject(params.gisID);
     if (result) {
       return result;
     } else {
-      const errorMessage: getGISObjectError = {
-        message: {
-          HU: 'A helyszín lekérés közben hiba történt!',
-          EN: 'Some error occured during object selection!',
-        },
-      };
-      throw new NotFoundException(errorMessage);
+      throw new NotFoundException(
+        lang === 'hu'
+          ? 'A helyszín lekérése közben hiba történt!'
+          : 'Some error occured during object selection!',
+      );
     }
   }
 
   @Get('getGeoJSONS')
-  public async getGeoJSONS(): Promise<{
+  public async getGeoJSONS(@Req() req: Request): Promise<{
     areas: any;
     paths: any;
     places: any;
   }> {
+    const lang = req.headers['lang-header'] ?? 'en';
+
     const result = await this.middleEarthService.postGeoJSONS();
     if (result.areas) {
       return result;
     } else {
-      const errorMessage: getGeoJSONSError = {
-        message: {
-          HU: 'A térképi elemek lekérése közben hiba történt!',
-          EN: 'Some error occured during map element fetching!',
-        },
-      };
-      throw new NotFoundException(errorMessage);
+      throw new NotFoundException(
+        lang === 'hu'
+          ? 'A térképi elemek lekérése közben hiba történt!'
+          : 'Some error occured during map element fetching!',
+      );
     }
   }
 
   @Get('checkEmailSend')
   public async checkEmailSend(
     @Req() req: Request,
-  ): Promise<{ status: string }> {
+  ): Promise<{ status: boolean; warningMessage: string | undefined }> {
     const ip = getClientIp(req);
-    console.log(req.headers['lang-header']);
+    const lang = req.headers['lang-header'] ?? 'en';
     const postMail = await this.chatService.checkEmailSend(ip);
 
     switch (postMail.status) {
       case 'ok':
-        return { status: 'success' };
+        return { status: true, warningMessage: undefined };
       case 'not ok':
-        return { status: 'wait 24 hours' };
+        return {
+          status: false,
+          warningMessage:
+            lang === 'hu'
+              ? 'Kérlek, várj egy kicsit a következő üzenet küldésével!'
+              : 'Please, wait a bit, till you send the next message!',
+        };
       default:
         throw new NotFoundException('Could not get client ip data');
     }
   }
 
   @Post('postNewMail')
-  public async postNewEmail(@Req() req: Request): Promise<{ status: string }> {
+  public async postNewEmail(
+    @Req() req: Request,
+  ): Promise<{ status: boolean; message: string }> {
     const ip = getClientIp(req);
+    const lang = req.headers['lang-header'] ?? 'en';
 
     const postMail = await this.chatService.postNewEmail(ip);
 
     switch (postMail.status) {
       case 'ok':
-        return { status: 'success' };
+        return {
+          status: true,
+          message:
+            lang === 'hu'
+              ? 'Üzenet elküldve! Köszönöm!'
+              : 'Message sent! Thank you!',
+        };
       case 'not ok':
-        return { status: 'wait 24 hours' };
+        return {
+          status: false,
+          message:
+            lang === 'hu'
+              ? 'Az üzenetküldés sikertelen! Kérlek, próbálkozz kicsit később!'
+              : 'Could not send message! Please, try again a bit later!',
+        };
       default:
-        throw new NotFoundException('Could not get client ip data');
+        throw new NotFoundException(
+          lang === 'hu'
+            ? 'Az üzenetküldés sikertelen! Kérlek, próbálkozz kicsit később!'
+            : 'Could not send message! Please, try again a bit later!',
+        );
     }
   }
 }
