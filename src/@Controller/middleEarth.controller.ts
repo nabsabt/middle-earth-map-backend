@@ -1,16 +1,18 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Post,
   Query,
   Req,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { GISObject, SearchResults } from 'src/@Model/middleEarth.model';
 import { MiddleEarthService } from 'src/@Service/middleEarth.service';
 import { getClientIp } from 'get-client-ip';
-import { ChatService } from 'src/@Service/chat.service';
+import { AI_CHAR, ChatParams, ChatService } from 'src/@Service/chat.service';
 
 @Controller()
 export class MiddleEarthController {
@@ -140,5 +142,31 @@ export class MiddleEarthController {
             : 'Could not send message! Please, try again a bit later!',
         );
     }
+  }
+
+  @Post('postMessageToAI')
+  public async postMessageToAI(
+    @Req() req: Request,
+    @Body() body: { message: string; replyAs: AI_CHAR },
+  ): Promise<{ reply: string }> {
+    const ip = getClientIp(req);
+    const lang: string = (req.headers['lang-header'] as string) ?? 'en';
+    const params: ChatParams = {
+      message: body.message,
+      replyAs: body.replyAs,
+      lang: lang as 'en' | 'hu',
+    };
+    console.log('params: ', params);
+
+    const result: { error: boolean; reply: string } =
+      await this.chatService.streamChat(params);
+    if (result.error) {
+      throw new ServiceUnavailableException(
+        lang === 'hu'
+          ? `${body.replyAs} sajnos elfoglalt, jelenleg valamiért nem tud válaszolni!`
+          : `${body.replyAs} is currently not available!`,
+      );
+    }
+    return { reply: result.reply };
   }
 }

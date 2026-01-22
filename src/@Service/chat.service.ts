@@ -8,7 +8,7 @@ export type AI_CHAR = 'Illuvatar' | 'Gandalf' | 'Sauron' | 'Aragorn' | 'Gollum';
 export type ChatParams = {
   message: string;
   replyAs: AI_CHAR;
-  lang: 'EN' | 'HU';
+  lang: 'en' | 'hu';
 };
 
 export type StreamChunkHandler = (deltaText: string) => void;
@@ -32,8 +32,8 @@ export class ChatService {
     return trimmed;
   }
 
-  private characterSystemPrompt(char: AI_CHAR, lang: 'EN' | 'HU'): string {
-    const langName = lang === 'HU' ? 'Hungarian' : 'English';
+  private characterSystemPrompt(char: AI_CHAR, lang: 'en' | 'hu'): string {
+    const langName = lang === 'hu' ? 'Hungarian' : 'English';
 
     const commonRules = `
 You are roleplaying as ${char} from Tolkien's legendarium.
@@ -57,33 +57,36 @@ Keep the reply under 500 characters.`;
 
   public async streamChat(
     params: ChatParams,
-    onDelta: StreamChunkHandler,
-  ): Promise<string> {
+    /*  onDelta: StreamChunkHandler, */
+  ): Promise<{ error: boolean; reply: string }> {
     const message = this.sanitizeMessage(params.message);
     const system = this.characterSystemPrompt(params.replyAs, params.lang);
 
     let fullText = '';
 
-    const stream = await this.client.responses.stream({
-      model: process.env.OPENAI_MODEL || 'gpt-5-nano-2025-08-07',
+    try {
+      const stream = await this.client.responses.stream({
+        model: process.env.OPENAI_MODEL || 'gpt-5-nano-2025-08-07',
 
-      input: [
-        { role: 'system', content: [{ type: 'input_text', text: system }] },
-        { role: 'user', content: [{ type: 'input_text', text: message }] },
-      ],
-      // Hard cap. 500 chars is often ~80–160 tokens, but languages vary.
-      max_output_tokens: 200,
-    });
+        input: [
+          { role: 'system', content: [{ type: 'input_text', text: system }] },
+          { role: 'user', content: [{ type: 'input_text', text: message }] },
+        ],
+        // Hard cap. 500 chars is often ~80–160 tokens, but languages vary.
+        max_output_tokens: 200,
+      });
 
-    stream.on('response.output_text.delta', (ev: any) => {
-      const delta = ev?.delta ?? '';
-      if (delta) {
-        fullText += delta;
-        onDelta(delta);
+      for await (const event of stream) {
+        if (event.type === 'response.output_text.delta') {
+          fullText += event.delta;
+        }
       }
-    });
 
-    return fullText;
+      console.log('response: ', fullText.trim());
+      return { error: false, reply: fullText.trim() };
+    } catch (error) {
+      return { error: true, reply: '' };
+    }
   }
 
   //Handling emails ->
