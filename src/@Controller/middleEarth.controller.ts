@@ -156,7 +156,6 @@ export class MiddleEarthController {
       replyAs: body.replyAs,
       lang: lang as 'en' | 'hu',
     };
-    console.log('params: ', params);
 
     const result: { error: boolean; reply: string } =
       await this.chatService.streamChat(params);
