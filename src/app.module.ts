@@ -5,6 +5,8 @@ import { join } from 'path';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MiddleEarthService } from './@Service/middleEarth.service';
 import { ChatService } from './@Service/chat.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SchedulerService } from './@Service/scheduler.service';
 
 @Module({
   imports: [
@@ -19,9 +21,10 @@ import { ChatService } from './@Service/chat.service';
         uri: configService.get<string>('MONGODB_CONNECTION'),
       }),
     }),
+    ScheduleModule.forRoot(),
   ],
   controllers: [MiddleEarthController],
-  providers: [MiddleEarthService, ChatService],
+  providers: [MiddleEarthService, ChatService, SchedulerService],
 })
 export class AppModule {
   constructor() {}

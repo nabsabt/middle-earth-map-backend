@@ -25,6 +25,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^6.1.0",
     "express-rate-limit": "^8.2.1",
     "get-client-ip": "^3.0.4",
     "mongoose": "^9.1.2",
