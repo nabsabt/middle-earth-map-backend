@@ -14,7 +14,6 @@ import { GISObject, SearchResults } from 'src/@Model/middleEarth.model';
 import { MiddleEarthService } from 'src/@Service/middleEarth.service';
 import { getClientIp } from 'get-client-ip';
 import { AI_CHAR, ChatParams, ChatService } from 'src/@Service/chat.service';
-import { BadRequestError } from 'openai';
 
 @Controller()
 export class MiddleEarthController {
@@ -46,6 +45,18 @@ export class MiddleEarthController {
           : 'Some error occured during searching!',
       );
     }
+  }
+
+  @Get('getEmailJSKeys')
+  public getEmailJSKeys(): {
+    result: { publicKey: string; serviceId: string; templateId: string };
+  } {
+    const emailjs = {
+      publicKey: 'nRmMqMX6tFgKJVQE8',
+      serviceId: 'service_0i7h32w',
+      templateId: 'template_7rr2itc',
+    };
+    return { result: emailjs };
   }
 
   @Get('getGISObject')
