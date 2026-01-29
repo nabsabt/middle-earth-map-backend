@@ -18,8 +18,8 @@ async function bootstrap() {
 
   //when prod, and frontend/backend has the same URL, origin can be removed
   app.enableCors({
-    origin: '*',
-    //credentials: true,
+    origin: ['https://middleearthmap.eu', 'http://middleearthmap.eu'],
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Lang-Header'],
   });
