@@ -102,7 +102,13 @@ export class MiddleEarthController {
   public async checkEmailSend(
     @Req() req: Request,
   ): Promise<{ status: boolean; warningMessage: string | undefined }> {
-    const ip = getClientIp(req);
+    //
+    const xff = req.headers['x-forwarded-for'];
+    const xffIp = (Array.isArray(xff) ? xff[0] : xff)?.split(',')[0]?.trim();
+
+    const ipRaw = xffIp || getClientIp(req) || req.ip || '';
+    const ip = ipRaw.replace('::ffff:', '');
+    //
     const lang = req.headers['lang-header'] ?? 'en';
     const postMail = await this.chatService.checkEmailSend(ip);
 
@@ -126,7 +132,12 @@ export class MiddleEarthController {
   public async postNewEmail(
     @Req() req: Request,
   ): Promise<{ status: boolean; message: string }> {
-    const ip = getClientIp(req);
+    const xff = req.headers['x-forwarded-for'];
+    const xffIp = (Array.isArray(xff) ? xff[0] : xff)?.split(',')[0]?.trim();
+
+    const ipRaw = xffIp || getClientIp(req) || req.ip || '';
+    const ip = ipRaw.replace('::ffff:', '');
+
     const lang = req.headers['lang-header'] ?? 'en';
 
     const postMail = await this.chatService.postNewEmail(ip);
@@ -161,7 +172,11 @@ export class MiddleEarthController {
   public async isChatMessageAllowed(
     @Req() req: Request,
   ): Promise<{ isAllowed: boolean }> {
-    const ip = getClientIp(req);
+    const xff = req.headers['x-forwarded-for'];
+    const xffIp = (Array.isArray(xff) ? xff[0] : xff)?.split(',')[0]?.trim();
+
+    const ipRaw = xffIp || getClientIp(req) || req.ip || '';
+    const ip = ipRaw.replace('::ffff:', '');
     const chatStatus = await this.chatService.checkChatMessageAllowed(ip);
 
     return { isAllowed: chatStatus.allowed };
@@ -172,7 +187,12 @@ export class MiddleEarthController {
     @Req() req: Request,
     @Body() body: { message: string; replyAs: AI_CHAR },
   ): Promise<{ reply: string }> {
-    const ip = getClientIp(req);
+    const xff = req.headers['x-forwarded-for'];
+    const xffIp = (Array.isArray(xff) ? xff[0] : xff)?.split(',')[0]?.trim();
+
+    const ipRaw = xffIp || getClientIp(req) || req.ip || '';
+    const ip = ipRaw.replace('::ffff:', '');
+
     const lang: string = (req.headers['lang-header'] as string) ?? 'en';
     const params: ChatParams = {
       message: body.message,

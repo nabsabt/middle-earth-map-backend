@@ -78,13 +78,14 @@ export class MiddleEarthService {
       const entries = await fs.readdir(dir, { withFileTypes: true });
       const files = entries.filter((e) => e.isFile()).map((e) => e.name);
 
-      /* return files.map(
-        (file) => `uploads/images/${gisID}/${encodeURIComponent(file)}`,
-      ); */
+      //this works on VPS:
       return files.map(
+        (file) => `uploads/images/${gisID}/${encodeURIComponent(file)}`,
+      );
+      /* return files.map(
         (file) =>
           `${process.env.SERVER_URL}:${process.env.PORT ?? 3000}/uploads/images/${gisID}/${encodeURIComponent(file)}`,
-      );
+      ); */
     } catch {
       // no folder -> empty gallery
       return [];

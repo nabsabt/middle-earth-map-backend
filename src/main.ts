@@ -16,6 +16,7 @@ async function bootstrap() {
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
+  app.set('trust proxy', 1);
   //when prod, and frontend/backend has the same URL, origin can be removed
   app.enableCors({
     origin: ['https://middleearthmap.eu', 'http://middleearthmap.eu'],
